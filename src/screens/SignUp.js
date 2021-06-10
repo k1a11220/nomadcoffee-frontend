@@ -1,6 +1,4 @@
 import { gql, useMutation } from "@apollo/client";
-import { faInstagram } from "@fortawesome/free-brands-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useForm } from "react-hook-form";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
@@ -12,6 +10,8 @@ import Input from "../components/auth/Input";
 import PageTitle from "../components/PageTitle";
 import { FatLink } from "../components/shared";
 import routes from "../routes";
+import FormError from "../components/auth/FormError";
+import Logo from "../components/Logo";
 
 const HeaderContainer = styled.div`
   display: flex;
@@ -27,15 +27,13 @@ const Subtitle = styled(FatLink)`
 
 const CREATE_ACCOUNT_MUTATION = gql`
   mutation createAccount(
-    $firstName: String!
-    $lastName: String
+    $name: String!
     $username: String!
     $email: String!
     $password: String!
   ) {
     createAccount(
-      firstName: $firstName
-      lastName: $lastName
+      name: $name
       username: $username
       email: $email
       password: $password
@@ -48,25 +46,32 @@ const CREATE_ACCOUNT_MUTATION = gql`
 
 function SingUp() {
   const history = useHistory();
+  const {
+    register,
+    handleSubmit,
+    errors,
+    formState,
+    getValues,
+    setError,
+  } = useForm({
+    mode: "onChange",
+  });
   const onCompleted = (data) => {
     const { username, password } = getValues();
     const {
-      createAccount: { ok },
+      createAccount: { ok, error },
     } = data;
     if (!ok) {
-      return;
+      return setError("result", { message: error });
     }
     history.push(routes.home, {
-      message: "Account created. Please log in.",
+      message: "Account Created. Please Login",
       username,
       password,
     });
   };
   const [createAccount, { loading }] = useMutation(CREATE_ACCOUNT_MUTATION, {
     onCompleted,
-  });
-  const { register, handleSubmit, formState, getValues } = useForm({
-    mode: "onChange",
   });
   const onSubmitValid = (data) => {
     if (loading) {
@@ -78,31 +83,20 @@ function SingUp() {
       },
     });
   };
+
   return (
     <AuthLayout>
       <PageTitle title="Sign up" />
       <FormBox>
         <HeaderContainer>
-          <FontAwesomeIcon icon={faInstagram} size="3x" />
+          <Logo />
           <Subtitle>
             Sign up to see photos and videos from your friends.
           </Subtitle>
         </HeaderContainer>
         <form onSubmit={handleSubmit(onSubmitValid)}>
-          <Input
-            ref={register({
-              required: "First Name is required.",
-            })}
-            name="firstName"
-            type="text"
-            placeholder="First Name"
-          />
-          <Input
-            ref={register}
-            type="text"
-            placeholder="Last Name"
-            name="lastName"
-          />
+          <Input ref={register} name="name" type="text" placeholder="Name" />
+
           <Input
             ref={register({
               required: "Email is required.",
@@ -111,14 +105,22 @@ function SingUp() {
             type="text"
             placeholder="Email"
           />
+          <FormError message={errors?.email?.message} />
+
           <Input
             ref={register({
               required: "Username is required.",
+              minLength: {
+                value: 5,
+                message: "Username should be longer than 5 chars",
+              },
             })}
             name="username"
             type="text"
             placeholder="Username"
           />
+          <FormError message={errors?.username?.message} />
+
           <Input
             ref={register({
               required: "Password is required.",
@@ -127,11 +129,13 @@ function SingUp() {
             type="password"
             placeholder="Password"
           />
+          <FormError message={errors?.password?.message} />
           <Button
             type="submit"
             value={loading ? "Loading..." : "Sign up"}
             disabled={!formState.isValid || loading}
           />
+          <FormError message={errors?.result?.message} />
         </form>
       </FormBox>
       <BottomBox cta="Have an account?" linkText="Log in" link={routes.home} />

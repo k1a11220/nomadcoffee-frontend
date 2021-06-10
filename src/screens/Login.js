@@ -1,22 +1,20 @@
-import { gql, useMutation } from "@apollo/client";
-import {
-  faFacebookSquare,
-  faInstagram,
-} from "@fortawesome/free-brands-svg-icons";
+import { faFacebookSquare } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useForm } from "react-hook-form";
-import { useLocation } from "react-router-dom";
 import styled from "styled-components";
-import { logUserIn } from "../apollo";
-import AuthLayout from "../components/auth/AuthLayout";
-import BottomBox from "../components/auth/BottomBox";
-import Button from "../components/auth/Button";
-import FormBox from "../components/auth/FormBox";
-import FormError from "../components/auth/FormError";
-import Input from "../components/auth/Input";
-import Separator from "../components/auth/Separator";
-import PageTitle from "../components/PageTitle";
 import routes from "../routes";
+import AuthLayout from "../components/auth/AuthLayout";
+import Button from "../components/auth/Button";
+import Separator from "../components/auth/Separator";
+import Input from "../components/auth/Input";
+import FormBox from "../components/auth/FormBox";
+import BottomBox from "../components/auth/BottomBox";
+import PageTitle from "../components/PageTitle";
+import { useForm } from "react-hook-form";
+import FormError from "../components/auth/FormError";
+import { gql, useMutation } from "@apollo/client";
+import { logUserIn } from "../apollo";
+import { useLocation } from "react-router-dom";
+import Logo from "../components/Logo";
 
 const FacebookLogin = styled.div`
   color: #385285;
@@ -27,7 +25,8 @@ const FacebookLogin = styled.div`
 `;
 
 const Notification = styled.div`
-  color: #2ecc71;
+  margin-top: 20px;
+  color: tomato;
 `;
 
 const LOGIN_MUTATION = gql`
@@ -41,8 +40,7 @@ const LOGIN_MUTATION = gql`
 `;
 
 function Login() {
-  const location = useLocation();
-  console.log(location);
+  const locationMessage = useLocation();
   const {
     register,
     handleSubmit,
@@ -54,8 +52,8 @@ function Login() {
   } = useForm({
     mode: "onChange",
     defaultValues: {
-      username: location?.state?.username || "",
-      password: location?.state?.password || "",
+      username: locationMessage?.state?.username || null,
+      password: locationMessage?.state?.password || null,
     },
   });
   const onCompleted = (data) => {
@@ -63,9 +61,7 @@ function Login() {
       login: { ok, error, token },
     } = data;
     if (!ok) {
-      return setError("result", {
-        message: error,
-      });
+      return setError("result", { message: error });
     }
     if (token) {
       logUserIn(token);
@@ -90,17 +86,15 @@ function Login() {
     <AuthLayout>
       <PageTitle title="Login" />
       <FormBox>
-        <div>
-          <FontAwesomeIcon icon={faInstagram} size="3x" />
-        </div>
-        <Notification>{location?.state?.message}</Notification>
+        <Logo />
+        <Notification>{locationMessage?.state?.message}</Notification>
         <form onSubmit={handleSubmit(onSubmitValid)}>
           <Input
             ref={register({
               required: "Username is required",
               minLength: {
                 value: 5,
-                message: "Username should be longer than 5 chars.",
+                message: "Username should be longer than 5 chars",
               },
             })}
             onChange={clearLoginError}
@@ -112,7 +106,7 @@ function Login() {
           <FormError message={errors?.username?.message} />
           <Input
             ref={register({
-              required: "Password is required.",
+              required: "Password is required",
             })}
             onChange={clearLoginError}
             name="password"
@@ -135,9 +129,9 @@ function Login() {
         </FacebookLogin>
       </FormBox>
       <BottomBox
-        cta="Don't have an account?"
+        cta="Don't have an account"
         linkText="Sign up"
-        link={routes.signUp}
+        link={routes.signup}
       />
     </AuthLayout>
   );

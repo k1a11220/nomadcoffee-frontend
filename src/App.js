@@ -5,10 +5,12 @@ import Login from "./screens/Login";
 import NotFound from "./screens/NotFound";
 import { client, darkModeVar, isLoggedInVar } from "./apollo";
 import { ThemeProvider } from "styled-components";
-import { darkTheme, GlobalStyles, lightTheme } from "./styles";
+import { darkTheme, lightTheme, GlobalStyles } from "./styles";
 import SignUp from "./screens/SignUp";
 import routes from "./routes";
 import { HelmetProvider } from "react-helmet-async";
+import Layout from "./components/Layout";
+import AddShop from "./screens/AddShop";
 
 function App() {
   const isLoggedIn = useReactiveVar(isLoggedInVar);
@@ -21,13 +23,26 @@ function App() {
           <Router>
             <Switch>
               <Route path={routes.home} exact>
-                {isLoggedIn ? <Home /> : <Login />}
+                {isLoggedIn ? (
+                  <Layout>
+                    <Home />
+                  </Layout>
+                ) : (
+                  <Login />
+                )}
               </Route>
+              <Route path={routes.add} exact>
+                <Layout>
+                  <AddShop />
+                </Layout>
+              </Route>
+
               {!isLoggedIn ? (
-                <Route path={routes.signUp}>
+                <Route path={routes.signup}>
                   <SignUp />
                 </Route>
               ) : null}
+
               <Route>
                 <NotFound />
               </Route>
